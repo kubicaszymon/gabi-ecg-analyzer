@@ -16,8 +16,7 @@ def fill_diseases(path):
     return diseases
 
 if __name__ == '__main__':
-    snomed_path = "ConditionNames_SNOMED-CT.csv"
-    diseases = fill_diseases(snomed_path)
+    diseases = fill_diseases("ConditionNames_SNOMED-CT.csv")
 
     directory = r"example"
 
@@ -29,6 +28,7 @@ if __name__ == '__main__':
             if filename.endswith(".hea"):
                 with open(os.path.join(path, filename), "r") as f:
                     data = f.read()
+                    dx_codes = []
                     match = re.search(r"#Dx:\s*([0-9,]+)", data)
                     if match:
                         dx_codes = match.group(1).split(',')
