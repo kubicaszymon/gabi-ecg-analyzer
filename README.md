@@ -2,65 +2,60 @@
 
 ## Opis projektu
 
-Projekt ma na celu stworzenie zaawansowanego modelu klasyfikacyjnego opartego na uczeniu maszynowym, który potrafi automatycznie rozpoznawać typy uderzeń serca na podstawie sygnału EKG. Automatyzacja tego procesu stanowi kluczowe wsparcie dla diagnostyki kardiologicznej, umożliwiając szybką identyfikację stanów patologicznych.
+Projekt ma na celu stworzenie modelu klasyfikacyjnego opartego na uczeniu maszynowym, który automatycznie rozpoznaje typy uderzeń serca na podstawie sygnału EKG. Automatyzacja tego procesu wspiera diagnostykę kardiologiczną poprzez szybką identyfikację stanów patologicznych.
 
-Analiza została przeprowadzona na uznanym zbiorze danych MIT-BIH Arrhythmia Database.
+## Źródło danych
 
-## Klasyfikacja diagnostyczna
+Analiza wykorzystuje **MIT-BIH Arrhythmia Database** — referencyjny zbiór danych opracowany przez Massachusetts Institute of Technology i Boston's Beth Israel Hospital (Moody & Mark, 2001). Dane w formacie przetworzonym pochodzą z repozytorium [Kaggle ECG Heartbeat Categorization Dataset](https://www.kaggle.com/datasets/shayanfazeli/heartbeat), przygotowane zgodnie z metodologią Kachuee et al. (2018).
 
-Model klasyfikuje sygnały do 5 głównych kategorii:
+- Zbiór treningowy: `mitbih_train.csv` (87 554 próbek)
+- Zbiór testowy: `mitbih_test.csv` (21 892 próbki)
+- Każda próbka: 187 znormalizowanych wartości amplitudy sygnału EKG
 
-- Klasa 0: Rytm normalny (w tym bloki pęczka Hisa, pobudzenia ucieczkowe).
+## Klasyfikacja diagnostyczna (AAMI)
 
-- Klasa 1: Przedwczesne pobudzenie przedsionkowe (nadkomorowe).
+Zgodnie z rekomendacjami Association for the Advancement of Medical Instrumentation, sygnały klasyfikowane są do 5 kategorii:
 
-- Klasa 2: Przedwczesne skurcze komorowe oraz ucieczkowe pobudzenia komorowe.
+| Klasa | Symbol | Opis |
+|-------|--------|------|
+| 0 | N | Rytm normalny, bloki odnogi pęczka Hisa, pobudzenia ucieczkowe |
+| 1 | S | Przedwczesne pobudzenia przedsionkowe i nadkomorowe |
+| 2 | V | Przedwczesne skurcze komorowe, pobudzenia ucieczkowe komorowe |
+| 3 | F | Pobudzenia zlane (fuzja) |
+| 4 | Q | Pobudzenia stymulowane, nieklasyfikowalne |
 
-- Klasa 3: Pobudzenie zlane (Fusion).
+## Metodologia
 
-- Klasa 4: Pobudzenia stymulowane (rozruszniki) oraz nieklasyfikowalne.
+### Przetwarzanie sygnału
+- Filtracja gaussowska (redukcja szumu wysokoczęstotliwościowego)
+- Inżynieria cech: pierwsza i druga pochodna sygnału
+
+### Modele
+1. **Regresja logistyczna (OvR)** — interpretowalny baseline z ważeniem klas
+2. **Sieć neuronowa MLP** — architektura 561→64→32→5 z ReLU
+
+### Ewaluacja
+- Macierz pomyłek z analizą błędów per klasa
+- Metryki: accuracy, precision, recall, F1 (macro/weighted)
+- 5-krotna walidacja krzyżowa ze stratyfikacją
+
+## Wyniki
+
+| Model | Accuracy | F1 (macro) | F1 (weighted) |
+|-------|----------|------------|---------------|
+| Regresja logistyczna | ~94% | ~0.65 | ~0.93 |
+| Sieć neuronowa (MLP) | ~95% | ~0.68 | ~0.94 |
+
+Wyniki są zgodne z literaturą — Kachuee et al. (2018) raportowali 93.4% accuracy dla CNN na tym samym zbiorze.
 
 ## Technologie
 
-Projekt został zrealizowany w języku Python przy użyciu następujących bibliotek:
-
-- `pandas` & `numpy` – obróbka i analiza danych.
-
-- `matplotlib` & `seaborn` – wizualizacja sygnałów EKG i wyników.
-
-- `scikit-learn` – podział danych i ewaluacja modeli.
-
-- `xgboost` – zaawansowane modelowanie klasyfikacyjne.
-
-## Analiza danych i modelowanie
-
-1. Zbiór danych: Wykorzystano dane z plików mitbih_train.csv (87 554 próbek) oraz mitbih_test.csv.
-
-2. Preprocessing: Każdy sygnał składa się ze 187 znormalizowanych wartości amplitudy sygnału w czasie.
-
-3. Wizualizacja: W notatniku zawarto analizę morfologii załamków, pozwalającą dostrzec różnice w zespole QRS dla poszczególnych schorzeń.
-
-4. Raportowanie: System zawiera funkcję generate_patient_report, która automatyzuje proces diagnozy.
-
-## Przykładowy raport diagnostyczny
-
-Model generuje sformatowany raport dla personelu medycznego:
-
-```plaintext
-════════════════════════════════════════════════════════════════
-DIAGNOZA
-════════════════════════════════════════════════════════════════
-
-Klasyfikacja:   Przedwczesne skurcze komorowe (Ventricular contraction)
-Stopień:        UMIARKOWANE
-
-ZALECENIA:      KONIECZNA pilna konsultacja kardiologiczna.
-```
-
-## Zastrzeżenie medyczne
-
-Raporty generowane przez ten system są wynikiem działania modeli sztucznej inteligencji i służą wyłącznie jako narzędzie pomocnicze. Każda diagnoza wymaga ostatecznej weryfikacji przez wykwalifikowanego lekarza kardiologa.
+- `pandas`, `numpy` — przetwarzanie danych
+- `matplotlib`, `seaborn` — wizualizacja
+- `scikit-learn` — modelowanie i ewaluacja
+- `PyTorch` — sieć neuronowa
+- `scipy` — filtracja sygnału
 
 ---
 
-Autorzy: Kubica Szymon, Siwirski Julian
+**Autorzy:** Kubica Szymon, Siwirski Julian
